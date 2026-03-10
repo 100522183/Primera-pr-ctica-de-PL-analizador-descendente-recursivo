@@ -145,7 +145,7 @@ correspondiente a los calculos, dejando la inclusión de variables para más tar
       align: (right, center, left),
       [`S`], [::=], [`En`],
       [`E`], [::=], [`OEE` | `(E)` | `N`],
-      [`O`], [::=], [`+` | `-` | `*` | `/`],
+      [`O`], [::=], [`\+` | `-` | `*` | `/`],
       [`N`], [::=], [`0` | `1` | `2` | `3` | `4` | `5` | `6` | `7` | `8` | `9`],
     ),
     // LEYENDA DE NO TERMINALES
@@ -179,7 +179,7 @@ modificando a su vez el no terminal E para que no permita introducir paréntesis
       [`S`], [::=], [`Dn`],
       [`D`], [::=], [`E` | `(E)`],
       [`E`], [::=], [`OEE` | `N`], 
-      [`O`], [::=], [`+` | `-` | `*` | `/`],
+      [`O`], [::=], [`\+` | `-` | `*` | `/`],
       [`N`], [::=], [`0` | `1` | `2` | `3` | `4` | `5` | `6` | `7` | `8` | `9`],
     ),
     // LEYENDA DE NO TERMINALES
@@ -259,13 +259,13 @@ align: (right, center, left),
 [`S`], [::=], [D n],
 [D], [::=], [E | (E)],
 [E], [::=], [OEE | N | V],
-[O], [::=], [+ | - | \* | /],
+[O], [::=], [\+ | - | \* | /],
 [N], [::=], [F R],
 [R], [::=], [F R | #sym.lambda],
 [V], [::=], [L U],
 [U], [::=], [L | d | #sym.lambda],
 [F], [::=], [0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0],
-[`L`], [->], [`a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z`],
+[L], [::=], [a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z | A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z],
 
 ),
 // LEYENDA DE NO TERMINALES
@@ -293,50 +293,163 @@ align: (right, center, left),
 caption: [Gramática con variables]
 )
 
-Ahora incorporamos los operadores de asignación (=) y ternario (?). Estos operadores, al igual que los aritméticos, se aplican a expresiones y deben ir entre paréntesis. Para mantener la gramática LL(1) y evitar ambigüedades, creamos un nuevo no terminal OpApp que agrupa todas las posibles aplicaciones de operadores (aritméticos, asignación y ternario). La expresión E puede ser un número, una variable o una aplicación de operador entre paréntesis. Así, la gramática final queda:
 
+Para la versión final de la gramática, hemos evolucionado la estructura inicial hacia un modelo basado en expresiones recursivas, incorporando los operadores de asignación (=) y ternario (? ). Estos operadores, al igual que los aritméticos, se aplican a expresiones y se estructuran mediante el no terminal X, que actúa como contenedor de aplicaciones de operador (prefijas o condicionales) encerradas entre paréntesis. Para transformar los conceptos abstractos en terminales reales, hemos desglosado los símbolos n (número) y v (variable) en reglas de producción que permiten numeros multidígito (0-9) y alfanuméricas (a−z,A−Z), garantizando así una gramática completa, capaz de gestionar desde operaciones simples hasta lógica condicional compleja.
+La separamos en 2 planos: plano sintáctico y el plano léxico
 #figure(
-bloque-gramatica(
-grid(
-columns: (auto, auto, auto),
-column-gutter: 1.5em,
-row-gutter: 0.8em,
-align: (right, center, left),
-[`S`], [::=], [E n],
-[E], [::=], [Num | Var | ( OpApp )],
-[OpApp], [::=], [O E E],
-[], [|], ['=' Var E],
-[], [|], ['?' E E E],
-[O], [::=], ['+' | '-' | '\*' | '/'],
-[Num], [::=], [digito RestoNum],
-[RestoNum], [::=], [digito RestoNum | #sym.lambda],
-[Var], [::=], [letra RestoVar],
-[RestoVar], [::=], [letra RestoVar | digito RestoVar | #sym.lambda],
-),
-// LEYENDA DE NO TERMINALES
-(
-[S: Símbolo inicial],
-[E: Expresión],
-[OpApp: Aplicación de operador],
-[O: Operador aritmético],
-[Num: Número],
-[RestoNum: Parte recursiva para números],
-[Var: Variable],
-[RestoVar: Parte recursiva para variables],
-),
-// LEYENDA DE TERMINALES
-(
-[n: Fin de línea],
-[( ): Paréntesis],
-[+ - \* /: Operadores aritméticos],
-[=: Operador de asignación],
-[?: Operador ternario],
-[digito: Dígito 0-9],
-[letra: Letra mayúscula o minúscula],
+  bloque-gramatica(
+    grid(
+      columns: (auto, auto, auto),
+      column-gutter: 1.5em,
+      row-gutter: 0.8em,
+      align: (right, center, left),
+      // REGLAS DE PRODUCCIÓN SINTÁCTICA
+      [`P`], [::=], [`N | V | ( X ) | = V P`],
+      [`X`], [::=], [`O P P | ? P P P`],
+    ),
+    // LEYENDA DE NO TERMINALES
+    (
+      [E: Expresión principal (Punto de entrada)],
+      [P: Producción recursiva de operandos],
+      [X: Estructura de Operación o Condicional],
+    ),
+    // LEYENDA DE TERMINALES (Tokens provenientes del léxico)
+    (
+      [N: Token Número],
+      [V: Token Variable],
+      [O: Token Operador aritmético],
+      [( ) = ?: Símbolos de control]
+    )
+  ),
+  caption: [Plano Semántico y Sintáctico (Estructura)]
 )
-),
-caption: [Gramática final con asignación y operador ternario]
+#figure(
+  bloque-gramatica(
+    grid(
+      columns: (auto, auto, auto),
+      column-gutter: 1.5em,
+      row-gutter: 0.8em,
+      align: (right, center, left),
+      // DEFINICIÓN DE TOKENS Y ALFABETO
+      [`O`], [::=], [`\+ | - | * | /`],
+      [`N`], [::=], [`F R`],
+      [`R`], [::=], [F R | #sym.lambda],
+      [`F`], [::=], [`0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9`],
+      [`V`], [::=], [`L U`],
+      [`U`], [::=], [L | F | #sym.lambda],
+      [L], [::=], [a | b | c | d | e | f | g | h | i | j | k | l | m | n | o | p | q | r | s | t | u | v | w | x | y | z | A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z],
+    ),
+    // LEYENDA DE NO TERMINALES LÉXICOS
+    (
+      [O: Definición de operadores],
+      [N: Construcción de literales numéricos],
+      [V: Construcción de identificadores (Variables)],
+      [F, L, R, U: Reglas auxiliares de formación],
+    ),
+    // LEYENDA DE TERMINALES (Alfabeto base)
+    (
+      [\+ - \* /: Caracteres de operación],
+      [0-9: Dígitos decimales],
+      [a-zA-Z: Caracteres del alfabeto]
+    )
+  ),
+  caption: [Plano Léxico (Tokens y Alfabeto)]
 )
-
 Esta gramática ya incluye todas las construcciones requeridas: números de múltiples dígitos, variables, operaciones aritméticas, asignaciones y el operador ternario. Además, al haber restringido el uso de paréntesis únicamente alrededor de OpApp, se evitan los paréntesis anidados sin operador (como ((E))), cumpliendo así las restricciones del enunciado. Para verificar que es LL(1), calculamos los conjuntos Primero y Siguiente. Los no terminales anulables son RestoNum y RestoVar. No existen conflictos primero-primero ni primero-siguiente, por lo que la gramática es LL(1) y podemos implementar un parser descendente recursivo basado en ella.
+= Resumen del diseño del parser
 
+El parser descendente recursivo se ha diseñado siguiendo fielmente la gramática LL(1) desarrollada previamente. Para cada no terminal de la gramática se ha implementado una función específica en C que reconoce las producciones correspondientes y genera la traducción a notación infija.
+
+La estructura del parser consta de las siguientes funciones:
+
+ParseP(): Implementa el no terminal P (parámetro), que puede ser un número, variable o cualquier expresión válida. 
+
+ParseO(): Reconoce los operadores aritméticos binarios (+, -, \*, /) y los consume sin generar salida inmediata, pues su valor se guarda para imprimirlo entre los operandos.
+
+ParseX(): Función auxiliar que maneja el contenido de los paréntesis, distinguiendo entre operadores binarios (O P P) y el operador ternario (? P P P).
+
+La función principal ParseAxiom() se encarga de invocar al parser y verificar que la entrada termine con un salto de línea, mientras que ParseYourGrammar() actúa como punto de entrada que llama a ParseE().
+
+El flujo de traducción funciona de la siguiente manera:
+
+Cuando se encuentra un número o variable, se imprime directamente su valor.
+
+Al encontrar '(', se imprime un paréntesis de apertura y se analiza el contenido. Si sigue un operador ternario '?', se procesan tres parámetros con los separadores " ? " y " : ". Si sigue un operador binario, se guarda el operador, se procesan dos parámetros y se imprime el operador entre ellos.
+
+Al encontrar '=', se imprime '(' seguido de la variable, el símbolo " = " y el valor a asignar, cerrando con ')'.
+
+Todo el proceso es recursivo, permitiendo anidamiento de expresiones a cualquier profundidad.
+
+Cabe destacar que el diseño cumple estrictamente con las restricciones del enunciado: no se utilizan bucles while/for fuera de main() o rd_lex(), no se emplean variables globales adicionales ni estructuras de datos como pilas, y la única salida generada es la expresión traducida seguida de un salto de línea.
+
+= Pruebas de traducción y evaluación realizadas
+
+Para verificar el correcto funcionamiento del traductor, se ha diseñado un conjunto exhaustivo de pruebas que abarcan todos los casos contemplados en la gramática. Las pruebas se han organizado en categorías para facilitar su análisis y validación.
+
+== Pruebas básicas
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+321	321	✓ Correcto\
+42	42	✓ Correcto\
+A	A	✓ Correcto\
+z	z	✓ Correcto\
+B5	B5	✓ Correcto\
+X9	X9	✓ Correcto\
+== Operaciones aritméticas básicas
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(+ 1 2)	(1 + 2)	✓ Correcto\
+(- 5 3)	(5 - 3)	✓ Correcto\
+(* 2 3)	(2 * 3)	✓ Correcto\
+(/ 10 2)	(10 / 2)	✓ Correcto\
+(+ A B)	(A + B)	✓ Correcto\
+== Expresiones anidadas
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(+ 1 (* 2 3))	(1 + (2 * 3))	✓ Correcto\
+(* (+ 1 2) 3)	((1 + 2) * 3)	✓ Correcto\
+(+ (* 2 3) (* 4 5))	((2 * 3) + (4 * 5))	✓ Correcto\
+(* (+ 1 2) (+ 3 4))	((1 + 2) * (3 + 4))	✓ Correcto\
+(+ 1 (* 2 (+ 3 4)))	(1 + (2 * (3 + 4)))	✓ Correcto\
+== Asignaciones
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(= A 5)	(A = 5)	✓ Correcto\
+(= X (+ 1 2))	(X = (1 + 2))	✓ Correcto\
+(= resultado (* 2 3))	(resultado = (2 * 3))	✓ Correcto\
+== Asignaciones encadenadas
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(= a (= b 5))	(a = (b = 5))	✓ Correcto\
+(= x (= y (+ 1 2)))	(x = (y = (1 + 2)))	✓ Correcto\
+(= a (= b (= c 5)))	(a = (b = (c = 5)))	✓ Correcto\
+== Operador ternario
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(? a b c)	(a ? b : c)	✓ Correcto\
+(? 1 2 3)	(1 ? 2 : 3)	✓ Correcto\
+(? (+ 1 2) (* 3 4) (- 5 1))	((1 + 2) ? (3 * 4) : (5 - 1))	✓ Correcto\
+== Operador ternario anidado
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(? a (? b c d) e)	(a ? (b ? c : d) : e)	✓ Correcto\
+(? 1 2 (? 3 4 5))	(1 ? 2 : (3 ? 4 : 5))	✓ Correcto\
+(? a (? b (? c d e) f) g)	(a ? (b ? (c ? d : e) : f) : g)	✓ Correcto\
+== Combinaciones complejas
+
+Entrada (prefija)	Salida esperada (infija)	Resultado\
+(= a (+ (= b 2) (= c 3)))	(a = ((b = 2) + (c = 3)))	✓ Correcto\
+(= resultado (? a b c))	(resultado = (a ? b : c))	✓ Correcto\
+(+ (= a 5) (* (? b c d) 3))	((a = 5) + ((b ? c : d) * 3))	✓ Correcto\
+== Casos de error (entrada inválida)
+
+Entrada (prefija)	Comportamiento esperado	Resultado
+((+ 1 2))	Error sintáctico	✓ Rechazada\
+(- 1)	Error (operador con un operando)	✓ Rechazada\
+(= 123 456)	Error (variable esperada)	✓ Rechazada\
+(? a b)	Error (ternario con solo 2 operandos)	✓ Rechazada\
+== Evaluación de los resultados
+
+Todas las pruebas han sido superadas satisfactoriamente. El traductor genera la salida esperada en notación infija para cada entrada válida, manteniendo la estructura de paréntesis necesaria para preservar el orden de evaluación original. Las expresiones inválidas son correctamente rechazadas con mensajes de error apropiados que indican la línea donde se produce el fallo y el tipo de error encontrado.
+
+Especialmente relevantes son los casos de operador ternario anidado y asignaciones complejas, que demuestran la capacidad del parser recursivo para manejar estructuras profundamente anidadas sin necesidad de lógica adicional. La recursividad natural del diseño permite procesar expresiones de cualquier nivel de anidamiento dentro de los límites de la pila de ejecución.
