@@ -1,5 +1,5 @@
-//  TeamNumber , TeamMember1-name , TeamMember2-name
-//  email for TeamMember1 ,  email for TeamMember2
+//  412, Carlos Martin Gallardo, Alejandro Quirante Sanz
+//  100522258@alumnos.uc3m.es,  100522183@alumnos.uc3m.es
 
 #include <ctype.h>
 #include <stdio.h>
@@ -9,7 +9,7 @@
 #define T_NUMBER 	1001
 #define T_OPERATOR	1002
 #define T_VARIABLE  1003
-#define T_TERNARY   1004  // Nuevo tipo para el operador ?
+#define T_TERNARY   1004 
 
 void ParseE () ;
 void ParseP () ;
